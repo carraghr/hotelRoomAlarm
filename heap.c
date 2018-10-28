@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include <heap.h>
+#include "minHeap.h"
 
 void swapHeapElements(Heap *heap, int currentPosition, int parent){
     Node temp = heap->timeHolderList[currentPosition];
@@ -50,7 +50,6 @@ int findMinChild(Heap *heap, int currentPosition){
 void downHeap(Heap *heap,int currentPosition){
     int minChild = findMinChild(heap,currentPosition);
     if((heap->timeHolderList[currentPosition]).time > (heap->timeHolderList[minChild]).time && minChild <= heap->numberOfElements){
-        printf("\n swapings %d with %d\n",currentPosition,minChild);
         swapHeapElements(heap,currentPosition,minChild);
         downHeap(heap, minChild);
     }
@@ -88,7 +87,7 @@ Node removeTopElement(Heap *heap){
     return temp;
 }
 
-Node removeTopElement(Heap *heap){
+Node peek(Heap *heap){
     return heap->timeHolderList[0];
 }
 

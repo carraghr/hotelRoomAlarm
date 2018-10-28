@@ -4,7 +4,8 @@
 #include <signal.h>
 #include <pthread.h>
 #include <time.h>
-#include <heap.h>
+#include "minHeap.h"
+
 #define RAND_MAX_TIME_RANGE 100
 
 pthread_mutex_t lock;
@@ -78,5 +79,4 @@ int main(int argc, char **argv){
 	pthread_mutex_destroy(&lock);
 	pthread_cond_destroy(&updatedHeap);
 	return 0;
-    
 }
