@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdbool.h>
 #include "minHeap.h"
 
 void swapHeapElements(Heap *heap, int currentPosition, int parent){
@@ -19,7 +20,7 @@ void init(Heap *heap){
 
 void extendHeap(Heap *heap){
     heap->size = heap->size * 2;
-	heap->timeHolderList = realloc(heap->timeHolderList,heap->size*(sizeof(Node)));
+    heap->timeHolderList = realloc(heap->timeHolderList,heap->size*(sizeof(Node)));
 }
 
 int getParentIndex(int nodeIndex){
@@ -78,16 +79,30 @@ void addElement(Heap *heap, Node* heapNode){
     upHeap(heap,heap->numberOfElements-1);
 }
 
-Node removeTopElement(Heap *heap){
+Node* removeTopElement(Heap *heap){
     Node temp;
     temp = heap->timeHolderList[0];
     heap->timeHolderList[0] = heap->timeHolderList[heap->numberOfElements-1];
     heap->numberOfElements--;
+        heap->expiredTimes++;
     downHeap(heap,0);
-    return temp;
+    Node *ret;
+    ret=(Node*)malloc(sizeof(Node));
+    ret->time = temp.time;
+    ret->roomNumber = temp.roomNumber;
+    return ret;
 }
 
-Node peek(Heap *heap){
-    return heap->timeHolderList[0];
+Node* peek(Heap *heap){
+    Node temp;
+    temp = heap->timeHolderList[0];
+    Node *ret;
+    ret=(Node*)malloc(sizeof(Node));
+    ret->time = temp.time;
+    ret->roomNumber = temp.roomNumber;
+    return ret;
 }
 
+bool isEmpty(Heap *heap){
+   return heap->numberOfElements < 1;
+}
