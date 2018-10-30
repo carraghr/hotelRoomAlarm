@@ -12,14 +12,23 @@
 pthread_mutex_t lock;
 pthread_cond_t updatedHeap;
 
+bool generatorEnd = false;
+bool noficiationEnd = false;
+
+int cleanup_pop_arg = 0;
+
+void cleanUpGenerator(void *arg){
+}
+
 void *generator(void *passedHeap){
     Heap *heap = (Heap*)passedHeap;
     Node *roomAlarm, *checkNode;
     int i=0;
-    while(1){
+    pthread_cleanup_push(cleanUpGenerator,NULL);
+    while(!generatorEnd){
         pthread_mutex_lock(&lock);
         checkNode = peek(heap);
-	roomAlarm = (Node*)malloc(sizeof(Node));
+        roomAlarm = (Node*)malloc(sizeof(Node));
         roomAlarm->time = time(NULL) + (rand() % RAND_MAX_TIME_RANGE);
         roomAlarm->roomNumber = rand()%100;
         addElement(heap,roomAlarm);
@@ -29,9 +38,10 @@ void *generator(void *passedHeap){
             pthread_cond_signal(&updatedHeap);
         }       
         pthread_mutex_unlock(&lock);
-	sleep(rand()%5);
-
+        sleep(rand()%5);
     }
+    pthread_cleanup_pop(cleanup_pop_arg);
+    printf("End of generator!!\n\n");
     return (0);
 }
 
@@ -40,8 +50,8 @@ void *notifier(void *passedHeap){
     Node roomAlarm;
     Node *checkNode, *topAlarm;
     time_t currentTime;    
-
-    while(1){
+    pthread_cleanup_push(cleanUpGenerator,NULL);
+    while(!noficiationEnd){
         pthread_mutex_lock(&lock);
         while(isEmpty(heap)){
             pthread_cond_wait(&updatedHeap,&lock);
@@ -64,7 +74,17 @@ void *notifier(void *passedHeap){
         }        
         pthread_mutex_unlock(&lock);
     }
+    pthread_cleanup_pop(cleanup_pop_arg);
+    printf("End of notifier!!\n\n");
     return (0);
+}
+
+void shutDownSignal(int signalCode){
+    if(signalCode == SIGINT){
+        noficiationEnd = true;
+        generatorEnd = true;
+        printf("Flags changed for threads\n\n");
+    }
 }
 
 int main(int argc, char **argv){
@@ -76,6 +96,8 @@ int main(int argc, char **argv){
     pthread_mutex_init(&lock,NULL);
     pthread_cond_init(&updatedHeap,NULL);
     
+    signal(SIGINT,shutDownSignal);
+    
     pthread_create(&generateTimes,NULL,generator,(void*)&heap);
     pthread_create(&alarmNotifier,NULL,notifier,(void*)&heap);
     
@@ -84,5 +106,6 @@ int main(int argc, char **argv){
 
 	pthread_mutex_destroy(&lock);
 	pthread_cond_destroy(&updatedHeap);
+    //TODO clean up heap
 	return 0;
 }
